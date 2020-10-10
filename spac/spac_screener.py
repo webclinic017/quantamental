@@ -97,7 +97,8 @@ def get_fct1_flter2_tickers(tickers, fct1_df):
 
 def gen_fct1_to_send(price, spac_info, filename='abnormal_spac.txt'):
     df = gen_factor_1_df(price)
-    print( " check this ",df[('price_chg_pct', 'ACAM')].tail())
+    print( " check this ",df.index[-1].strftime('%Y-%m-%d'))
+    last_date = df.index[-1].strftime('%Y-%m-%d')
     abnormal_tickers_filters=[]
 
     filter1 = get_fct1_flter1_tickers(price['Close'].columns, df)
@@ -107,7 +108,7 @@ def gen_fct1_to_send(price, spac_info, filename='abnormal_spac.txt'):
 
     filenames=[]
     for i in range(len(abnormal_tickers_filters)):
-        filename="abnormal_spac_filter"+str(i)+".txt"
+        filename="abnormal_spac_filter"+str(i)+"_"+last_date+".csv"
         to_send = {}
         #print("preparing file "+filename , str(abnormal_tickers_filters[i]))
         #print(df.columns)
@@ -145,7 +146,12 @@ def gen_fct1_to_send(price, spac_info, filename='abnormal_spac.txt'):
                 to_send[ticker].tail(10).to_string(outfile)
                 outfile.write('\n\n')
         filenames.append(filename)
-
+    
+        tickers_filename = "filter%s_tickers_%s.csv"%(i,last_date)
+        with open (CWD+tickers_filename,'w') as f:
+            for ticker in abnormal_tickers_filters[i]:
+                f.write("%s\n"%ticker)             
+        filenames.append(tickers_filename)
     return filenames
 
 def send_email(filenames = ['abnormal_spac.txt'], path_to_file=CWD ):
