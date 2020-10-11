@@ -18,11 +18,12 @@ def generate_super_trend_graph(org_df, super_trend_line, cross_up, cross_dn, fil
         side_sig = [cross_up, cross_dn][i]
         side = "BUY" if i == 0 else "SELL"
         file.write("<h1> {0}</h1>  ".format(side))
-        print(side)
+        #print(side)
 
         for item in side_sig[side_sig == True].iloc[-1].dropna().iteritems():
             #print("item",item)
             symbol = item[0]
+            print("%s: %s"%(side,symbol))
             file.write("<h2> %s: %s</h2>"%(side,symbol))
             buy = org_df['Close', symbol][cross_up[symbol] == True]
             sell = org_df['Close', symbol][cross_dn[symbol] == True]
@@ -51,7 +52,7 @@ def send_email(filename):
 if __name__ == '__main__':
 
 
-    symbols = CUS_SPY_SYMBOLS
+    symbols = ['UAL','AAPL'] #CUS_SPY_SYMBOLS
     data = yf.download(symbols, period='2Y', interval='1d')
 
     df = data.copy()
