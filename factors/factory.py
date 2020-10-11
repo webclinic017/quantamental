@@ -211,7 +211,20 @@ def super_trend_vpt(org_df, timeperiod=14, axis=1, level=0,
     buy = (org_df[close_name] > st_line) & (org_df[close_name].shift() <= st_line.shift())
     sell = (org_df[close_name] < st_line) & (org_df[close_name].shift() >= st_line.shift())
 
-    return buy, sell, st_line
+    # append st_line to org_df
+    vpt_name = "VPT"
+    org_df = org_df.drop(vpt_name, axis=axis, level=level)  # drop if exist
+    tmp = org_df.xs(close_name, axis=axis, level=level, drop_level=False)
+    vpt_tmp = tmp.copy()
+
+    for symbol in tmp.columns.levels[1]:
+        vpt_tmp[close_name, symbol] = st_line[symbol]
+
+    vpt_tmp = vpt_tmp.rename(columns={close_name: vpt_name})
+
+    org_df = org_df.join(vpt_tmp)
+
+    return buy, sell, st_line, org_df
 
 
 def get_atr(org_df, timeperiod=100, axis=1, level=0,
@@ -240,19 +253,27 @@ if __name__ == '__main__':
 
     df = data.copy()
 
-    df = append_return_cols(df, 'Close', 1, 1)
-    df = append_return_cols(df, 'Close', 5, 5)
-    df = append_return_cols(df, 'Close', 5, 30)
-    df = append_return_cols(df, 'Volume', 5, 10)
-    df = append_return_cols(df, 'Volume', 5, 30)
-    df = append_macd_cols(df, 'Close')
-    df = append_bollinger_band_cols(df, 'Close')
-    df = append_rsi_cols(df, 'Close')
-    df = append_fwd_return_cols(df, 'Close', 5, 30)
+    #df = append_return_cols(df, 'Close', 1, 1)
+    #df = append_return_cols(df, 'Close', 5, 5)
+    #df = append_return_cols(df, 'Close', 5, 30)
+    #df = append_return_cols(df, 'Volume', 5, 10)
+    #df = append_return_cols(df, 'Volume', 5, 30)
+    #df = append_macd_cols(df, 'Close')
+    #df = append_bollinger_band_cols(df, 'Close')
+    #df = append_rsi_cols(df, 'Close')
+    #df = append_fwd_return_cols(df, 'Close', 5, 30)
 
     # df[sig_buy['AAPL']]['Close']['AAPL'].plot()
 
-    print(df['Close'])
+    #print(df['Close'])
+    _,_,st_line,df =super_trend_vpt(df)
+    print(df.columns)
+    print(df.tail())
+    print(st_line.tail())
+
+
+
+
 
 
 
