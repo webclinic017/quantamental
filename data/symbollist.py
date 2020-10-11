@@ -27,4 +27,8 @@ CUS_SPY_SYMBOLS = sorted(['MMM','AOS','ABT','ABBV','ACN','ATVI','AYI','ADBE','AA
 'XEL','XRX','XLNX','XL','XYL','YUM','ZBH','ZION','ZTS',
 'TSLA','AMD', 'MU','NVDA',
 'MDB','MELI','SE','FTCH','NIO', 'BYND','SEE','BILI','SAM',
+'ISRG','TXG','LVGO','ILMN','ASML','WORK',
 'SPY'])
+
+
+CUS_SPY_SYMBOLS = sorted(list(set(CUS_SPY_SYMBOLS)))

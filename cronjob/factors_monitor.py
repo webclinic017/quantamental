@@ -12,7 +12,7 @@ import os
 CWD  = os.path.dirname(os.path.realpath(__file__))+"/"
 
 
-def generate_super_trend_graph(org_df, super_trend_line, cross_up, cross_dn, filename="graph.html"):
+def generate_super_trend_graph(org_df, super_trend_line, cross_up, cross_dn, open_position_symbols=[], filename="graph.html"):
     file=open(CWD+filename,'w+')
     for i in range(2):
         side_sig = [cross_up, cross_dn][i]
@@ -41,9 +41,34 @@ def generate_super_trend_graph(org_df, super_trend_line, cross_up, cross_dn, fil
             #fig.show()
 
             file.write(fig.to_html(full_html=False, include_plotlyjs='cdn'))
-
     file.close
-    return filename
+
+    open_position_file = "open_position.html"
+    file = open(CWD + open_position_file, 'w+')
+    #plot has position symbol
+    for symbol in open_position_symbols:
+        print("open position %s" % ( symbol))
+        file.write("%s" % ( symbol))
+        buy = org_df['Close', symbol][cross_up[symbol] == True]
+        sell = org_df['Close', symbol][cross_dn[symbol] == True]
+
+        # Create figure with secondary y-axis
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+        # Add traces
+        fig.add_trace(go.Scatter(x=org_df.index, y=org_df['Close', symbol], name=symbol), secondary_y=False)
+        fig.add_trace(go.Scatter(x=org_df.index, y=super_trend_line[symbol][super_trend_line[symbol] != 0], name='st_line'),
+                      secondary_y=False)
+
+        fig.add_trace(go.Scatter(x=buy.index, y=buy, name='buy'), secondary_y=False)
+        fig.add_trace(go.Scatter(x=sell.index, y=sell, name='sell'), secondary_y=False)
+        # fig.show()
+
+        file.write(fig.to_html(full_html=False, include_plotlyjs='cdn'))
+
+    file.close()
+
+    return [filename, open_position_file]
 
 
 def send_email(filename):
@@ -51,8 +76,13 @@ def send_email(filename):
 
 if __name__ == '__main__':
 
+    open_symbols = ["ZYXI","MSFT","AAPL","SPY"]
+    symbols = []
+    symbols.extend(open_symbols)#CUS_SPY_SYMBOLS
+    symbols.extend(CUS_SPY_SYMBOLS)
+    symbols = sorted(list(set(symbols)))
+    print(symbols)
 
-    symbols = CUS_SPY_SYMBOLS
     data = yf.download(symbols, period='2Y', interval='1d')
 
     df = data.copy()
@@ -70,5 +100,5 @@ if __name__ == '__main__':
     cross_up,cross_dn,st_line,df =fty.super_trend_vpt(df)
 
 
-    file = generate_super_trend_graph(df, st_line, cross_up, cross_dn)
-    emailhelper.send_email("Super Trend Watch List","", [file], CWD)
+    files = generate_super_trend_graph(df, st_line, cross_up, cross_dn, open_symbols)
+    emailhelper.send_email("Super Trend Watch List","", files, CWD)
