@@ -52,7 +52,7 @@ def send_email(filename):
 if __name__ == '__main__':
 
 
-    symbols = ['UAL','AAPL'] #CUS_SPY_SYMBOLS
+    symbols = CUS_SPY_SYMBOLS
     data = yf.download(symbols, period='2Y', interval='1d')
 
     df = data.copy()
@@ -71,4 +71,4 @@ if __name__ == '__main__':
 
 
     file = generate_super_trend_graph(df, st_line, cross_up, cross_dn)
-    #emailhelper.send_email("test1","this is test file", [file], CWD)
+    emailhelper.send_email("Super Trend Watch List","", [file], CWD)
