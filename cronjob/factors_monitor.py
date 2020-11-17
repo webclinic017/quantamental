@@ -9,28 +9,29 @@ import webbrowser
 from glob import glob
 import time
 
-
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from spac.config import Secret,Config
+from spac.config import Secret, Config
 import os
-CWD  = os.path.dirname(os.path.realpath(__file__))+"/"
+
+CWD = os.path.dirname(os.path.realpath(__file__)) + "/"
 
 
-def generate_super_trend_graph(org_df, super_trend_line, cross_up, cross_dn, open_position_symbols=[], filename="graph.html"):
-    file=open(CWD+filename,'w+')
+def generate_super_trend_graph(org_df, super_trend_line, cross_up, cross_dn, open_position_symbols=[],
+                               filename="graph.html"):
+    file = open(CWD + filename, 'w+')
     for i in range(2):
         side_sig = [cross_up, cross_dn][i]
         side = "BUY" if i == 0 else "SELL"
         file.write("<h1> {0}</h1>  ".format(side))
-        #print(side)
+        # print(side)
 
         for item in side_sig[side_sig == True].iloc[-1].dropna().iteritems():
-            #print("item",item)
+            # print("item",item)
             symbol = item[0]
-            print("%s: %s"%(side,symbol))
-            file.write("<h2> %s: %s</h2>"%(side,symbol))
+            print("%s: %s" % (side, symbol))
+            file.write("<h2> %s: %s</h2>" % (side, symbol))
             buy = org_df['Close', symbol][cross_up[symbol] == True]
             sell = org_df['Close', symbol][cross_dn[symbol] == True]
 
@@ -39,22 +40,23 @@ def generate_super_trend_graph(org_df, super_trend_line, cross_up, cross_dn, ope
 
             # Add traces
             fig.add_trace(go.Scatter(x=org_df.index, y=org_df['Close', symbol], name=symbol), secondary_y=False)
-            fig.add_trace(go.Scatter(x=org_df.index, y=super_trend_line[symbol][super_trend_line[symbol]!=0], name='st_line'),
-                          secondary_y=False)
+            fig.add_trace(
+                go.Scatter(x=org_df.index, y=super_trend_line[symbol][super_trend_line[symbol] != 0], name='st_line'),
+                secondary_y=False)
 
             fig.add_trace(go.Scatter(x=buy.index, y=buy, name='buy'), secondary_y=False)
             fig.add_trace(go.Scatter(x=sell.index, y=sell, name='sell'), secondary_y=False)
-            #fig.show()
+            # fig.show()
 
             file.write(fig.to_html(full_html=False, include_plotlyjs='cdn'))
     file.close
 
     open_position_file = "open_position.html"
     file = open(CWD + open_position_file, 'w+')
-    #plot has position symbol
+    # plot has position symbol
     for symbol in open_position_symbols:
-        print("open position %s" % ( symbol))
-        file.write("%s" % ( symbol))
+        print("open position %s" % (symbol))
+        file.write("%s" % (symbol))
         buy = org_df['Close', symbol][cross_up[symbol] == True]
         sell = org_df['Close', symbol][cross_dn[symbol] == True]
 
@@ -63,8 +65,9 @@ def generate_super_trend_graph(org_df, super_trend_line, cross_up, cross_dn, ope
 
         # Add traces
         fig.add_trace(go.Scatter(x=org_df.index, y=org_df['Close', symbol], name=symbol), secondary_y=False)
-        fig.add_trace(go.Scatter(x=org_df.index, y=super_trend_line[symbol][super_trend_line[symbol] != 0], name='st_line'),
-                      secondary_y=False)
+        fig.add_trace(
+            go.Scatter(x=org_df.index, y=super_trend_line[symbol][super_trend_line[symbol] != 0], name='st_line'),
+            secondary_y=False)
 
         fig.add_trace(go.Scatter(x=buy.index, y=buy, name='buy'), secondary_y=False)
         fig.add_trace(go.Scatter(x=sell.index, y=sell, name='sell'), secondary_y=False)
@@ -77,7 +80,8 @@ def generate_super_trend_graph(org_df, super_trend_line, cross_up, cross_dn, ope
     return [filename, open_position_file]
 
 
-def generate_nice_graph(df, symbols,filename="graph.html"):
+
+def generate_nice_graph(df, symbols, filename="graph.html"):
     file_path = CWD + filename
     file = open(file_path, 'w+')
     high_name = 'High'
@@ -114,9 +118,9 @@ def generate_nice_graph(df, symbols,filename="graph.html"):
     df = fty.append_bollinger_band_cols(df, 'Close')
     df = fty.append_bollinger_band_cols(df, 'Close', timeperiod=60)
 
-
-    #indiviual symbol
+    # indiviual symbol
     for sym_index in range(len(symbols)):
+
         symbol = symbols[sym_index]
         price_df = pd.DataFrame()
         price_df['price'] = (df['Close'] + df['Open'])[symbol] / 2
@@ -147,7 +151,7 @@ def generate_nice_graph(df, symbols,filename="graph.html"):
         # fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig = make_subplots(specs=[[{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}]],
                             rows=3, cols=1, row_heights=[1.6, 0.5, 0.5])
-        fig.update_layout(title="{}:{}".format(sym_index,symbol), autosize=False, width=1000, height=1000,
+        fig.update_layout(title="{}:{}".format(sym_index, symbol), autosize=False, width=1000, height=1000,
                           xaxis_rangeslider_visible=False)
 
         fig.add_trace(go.Candlestick(x=df.index,
@@ -156,8 +160,9 @@ def generate_nice_graph(df, symbols,filename="graph.html"):
                                      low=df['Low', symbol],
                                      close=df['Close', symbol]))
 
-        fig.add_trace(go.Bar(x=df.index, y=df['Volume', symbol], name='volume', opacity=0.3, marker=dict(color="#396afa"))
-                      , secondary_y=True)
+        fig.add_trace(
+            go.Bar(x=df.index, y=df['Volume', symbol], name='volume', opacity=0.3, marker=dict(color="#396afa"))
+            , secondary_y=True)
 
         # Add ema trace
         for col in tmp.columns:
@@ -185,10 +190,15 @@ def generate_nice_graph(df, symbols,filename="graph.html"):
                                  line=dict(color="#ffc800")), row=2, col=1)
 
         # rsi
-        fig.add_trace(go.Scatter(mode='lines', x=price_df.index, y=[75] * len(price_df.index), opacity=1,showlegend=False,
-                                 line=dict(color="#9e9e9e", dash='dash')), row=3, col=1)
-        fig.add_trace(go.Scatter(mode='lines', x=price_df.index, y=[25] * len(price_df.index), opacity=1,showlegend=False,
-                                 line=dict(color="#9e9e9e", dash='dash')), row=3, col=1)
+        fig.add_trace(
+            go.Scatter(mode='lines', x=price_df.index, y=[75] * len(price_df.index), opacity=1, showlegend=False,
+                       line=dict(color="#9e9e9e", dash='dash')), row=3, col=1)
+        fig.add_trace(
+            go.Scatter(mode='lines', x=price_df.index, y=[25] * len(price_df.index), opacity=1, showlegend=False,
+                       line=dict(color="#9e9e9e", dash='dash')), row=3, col=1)
+        fig.add_trace(
+            go.Scatter(mode='lines', x=price_df.index, y=[50] * len(price_df.index), opacity=1, showlegend=False,
+                       line=dict(color="#9e9e9e", dash='dash')), row=3, col=1)
         fig.add_trace(go.Scatter(mode='lines', x=price_df.index, y=price_df['rsi'], name='rsi', opacity=1,
                                  line=dict(color="#ff2600")), row=3, col=1)
 
@@ -207,30 +217,31 @@ def generate_nice_graph(df, symbols,filename="graph.html"):
         fig.add_trace(go.Scatter(mode='lines', x=price_df.index, y=price_df['bbl_fst'], name='bbl_fst', opacity=1,
                                  line=dict(color="#cf9667")), )
 
-        #fig.show()
-        file.write(fig.to_html(full_html=False, include_plotlyjs='cdn')) #write plot to file
 
-        if sym_index % 10 == 0 and sym_index!=0:
+        # fig.show()
+        file.write(fig.to_html(full_html=False, include_plotlyjs='cdn'))  # write plot to file
+
+        if sym_index % 10 == 0 and sym_index != 0:
             file.close()
             print(" open new file ", CWD + "{}_{}".format(sym_index, filename))
-            file = open(CWD+"{}_{}".format(sym_index,filename), 'w+')
+            file = open(CWD + "{}_{}".format(sym_index, filename), 'w+')
 
     file.close()
 
-    for file in glob(CWD+'*.html'):
+    for file in glob(CWD + '*.html'):
         now = time.time()
         modi_time = os.path.getmtime(file)
         if modi_time + 24 * 3600 < now:
             continue
-        webbrowser.open('file://'+file)
+        webbrowser.open('file://' + file)
     return [file]
 
 
 def send_email(filename):
     pass
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     '''
     open_symbols = ["ZYXI","MSFT","AAPL","SPY","VXX"]
     symbols = []
@@ -246,18 +257,18 @@ if __name__ == '__main__':
     emailhelper.send_email("Super Trend Watch List","", files, CWD)
     '''
 
-    symbols = ["ZYXI", "MSFT", "AAPL", "SPY", "VXX","BABA","NVDA","BYND",
-               "NIO","TSLA","DIS","WMT","BILI","SQ","XLNX","AMD","SPG","O",
-               "BAC","JPM","MSFT","FB","ADSK","ADBE","MRK","MDB","COF",
-               "VZ","M","APO","COST","QCOM","MU","LMT","SBUX","DIS","ASML",
-               "DADA","TAL","FSR","SE","TDOC","SDC","AXP","MA","UAL"]
+    symbols = ["ZYXI", "MSFT", "AAPL", "SPY", "VXX", "BABA", "NVDA", "BYND",
+               "NIO", "TSLA", "DIS", "WMT", "BILI", "SQ", "XLNX", "AMD", "SPG", "O",
+               "BAC", "JPM", "MSFT", "FB", "ADSK", "ADBE", "MRK", "MDB", "COF",
+               "VZ", "M", "APO", "COST", "QCOM", "MU", "LMT", "SBUX", "DIS", "ASML",
+               "DADA", "TAL", "FSR", "SE", "TDOC", "SDC", "AXP", "MA", "UAL",
+               "JKS","NKLA","ZTO","SLQT"]
 
-    #symbols = ["ZYXI", "MSFT", "AAPL", "SPY", "VXX", "BABA", "NVDA", "BYND"]
-
+    # symbols = ["ZYXI", "MSFT", "AAPL", "SPY", "VXX", "BABA", "NVDA", "BYND"]
 
     symbols = sorted(list(set(symbols)))
     print(symbols)
     print('len ', len(symbols))
 
     data = yf.download(symbols, period='2Y', interval='1d')
-    plot_files = generate_nice_graph(data,symbols)
+    plot_files = generate_nice_graph(data, symbols)
